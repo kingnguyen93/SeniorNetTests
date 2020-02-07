@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29728.190
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SeniorNetTests.Api", "SeniorNetTests.Api\SeniorNetTests.Api.csproj", "{070763CF-A030-4E6A-987D-E0CC30BDBAD6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SeniorNetTests.Data", "SeniorNetTests.Data\SeniorNetTests.Data.csproj", "{0D0990F8-7DBD-48D2-9FED-8A378623B78C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{070763CF-A030-4E6A-987D-E0CC30BDBAD6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{070763CF-A030-4E6A-987D-E0CC30BDBAD6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{070763CF-A030-4E6A-987D-E0CC30BDBAD6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{070763CF-A030-4E6A-987D-E0CC30BDBAD6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0D0990F8-7DBD-48D2-9FED-8A378623B78C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0D0990F8-7DBD-48D2-9FED-8A378623B78C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0D0990F8-7DBD-48D2-9FED-8A378623B78C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0D0990F8-7DBD-48D2-9FED-8A378623B78C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {ACFA0FD9-2A6E-492F-B22B-8B60B29AE351}
+	EndGlobalSection
+EndGlobal
