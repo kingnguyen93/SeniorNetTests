@@ -1,4 +1,5 @@
-﻿using SeniorNetTests.Models;
+﻿using SeniorNetTests.Constants;
+using SeniorNetTests.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,21 +9,31 @@ namespace SeniorNetTests.Services
 {
     public class WeatherForecastService : IWeatherForecastService
     {
+        private readonly IDistributedCacheService _distributedCacheService;
+
         private static readonly string[] Summaries = new[]
         {
             "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
         };
 
+        public WeatherForecastService(IDistributedCacheService distributedCacheService)
+        {
+            _distributedCacheService = distributedCacheService;
+        }
+
         public IEnumerable<WeatherForecast> GetWeatherForecast()
         {
-            var rng = new Random();
-            return Enumerable.Range(1, 5).Select(index => new WeatherForecast
+            return _distributedCacheService.GetOrCreate(() =>
             {
-                Date = DateTime.Now.AddDays(index),
-                TemperatureC = rng.Next(-20, 55),
-                Summary = Summaries[rng.Next(Summaries.Length)]
-            })
-            .ToArray();
+                var rng = new Random();
+                return Enumerable.Range(1, 5).Select(index => new WeatherForecast
+                {
+                    Date = DateTime.Now.AddDays(index),
+                    TemperatureC = rng.Next(-20, 55),
+                    Summary = Summaries[rng.Next(Summaries.Length)]
+                })
+                .ToArray();
+            }, CacheKeys.WeatherForecast);
         }
     }
 }

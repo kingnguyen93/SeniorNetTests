@@ -31,7 +31,6 @@ namespace SeniorNetTests.Api
         {
             services.AddDistributedMemoryCache(options =>
             {
-
             });
 
             services.AddCors();
@@ -53,6 +52,7 @@ namespace SeniorNetTests.Api
                 options.Providers.Add<GzipCompressionProvider>();
             });
 
+            services.AddSingleton<IDistributedCacheService, DistributedCacheService>();
             services.AddScoped<IWeatherForecastService, WeatherForecastService>();
         }
 
