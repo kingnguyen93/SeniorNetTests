@@ -2,10 +2,9 @@
 using SeniorNetTests.Constants;
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace SeniorNetTests.Services
@@ -17,6 +16,8 @@ namespace SeniorNetTests.Services
         private readonly IDistributedCache _distributedCache;
 
         private readonly ConcurrentDictionary<string, string> Keys = new ConcurrentDictionary<string, string>();
+
+        private readonly ConcurrentDictionary<object, SemaphoreSlim> Locks = new ConcurrentDictionary<object, SemaphoreSlim>();
 
         private readonly DistributedCacheEntryOptions cacheOptions;
 
@@ -41,17 +42,12 @@ namespace SeniorNetTests.Services
             {
                 string key = string.Join(",", keys).Trim(',');
 
-                if (!Keys.ContainsKey(key))
-                {
-                    string parent = string.Join(",", keys.Take(keys.Length - 1)).Trim(',');
-
-                    Keys.TryAdd(key, parent);
-                }
-
                 var cache = _distributedCache.GetString(key);
 
                 if (string.IsNullOrWhiteSpace(cache))
                 {
+                    Keys.TryAdd(key, string.Join(",", keys.Take(keys.Length - 1)).Trim(','));
+
                     result = factory.Invoke();
                     cache = JsonSerializer.Serialize(result);
                     _distributedCache.SetString(key, cache, cacheOptions);
@@ -65,7 +61,7 @@ namespace SeniorNetTests.Services
             return result;
         }
 
-        public async  Task<TItem> GetOrCreateAsync<TItem>(Func<Task<TItem>> factory, params string[] keys)
+        public async Task<TItem> GetOrCreateAsync<TItem>(Func<Task<TItem>> factory, params string[] keys)
         {
             TItem result;
 
@@ -77,20 +73,36 @@ namespace SeniorNetTests.Services
             {
                 string key = string.Join(",", keys).Trim(',');
 
-                if (!Keys.ContainsKey(key))
-                {
-                    string parent = string.Join(",", keys.Take(keys.Length - 1)).Trim(',');
-
-                    Keys.TryAdd(key, parent);
-                }
-
                 var cache = await _distributedCache.GetStringAsync(key);
 
                 if (string.IsNullOrWhiteSpace(cache))
                 {
-                    result = await factory.Invoke();
-                    cache = JsonSerializer.Serialize(result);
-                    _distributedCache.SetString(key, cache, cacheOptions);
+                    Keys.TryAdd(key, string.Join(",", keys.Take(keys.Length - 1)).Trim(','));
+
+                    SemaphoreSlim @lock = Locks.GetOrAdd(key, k => new SemaphoreSlim(1, 1));
+
+                    await @lock.WaitAsync();
+
+                    try
+                    {
+                        cache = await _distributedCache.GetStringAsync(key);
+
+                        if (string.IsNullOrWhiteSpace(cache))
+                        {
+
+                            result = await factory.Invoke();
+                            cache = JsonSerializer.Serialize(result);
+                            _distributedCache.SetString(key, cache, cacheOptions);
+                        }
+                        else
+                        {
+                            result = JsonSerializer.Deserialize<TItem>(cache);
+                        }
+                    }
+                    finally
+                    {
+                        @lock.Release();
+                    }
                 }
                 else
                 {
@@ -115,6 +127,7 @@ namespace SeniorNetTests.Services
         {
             _distributedCache.Remove(key);
             Keys.TryRemove(key, out _);
+            Locks.TryRemove(key, out _);
 
             foreach (var item in Keys.Where(k => k.Value.Length >= key.Length && k.Value.StartsWith(key, StringComparison.InvariantCulture)))
             {
